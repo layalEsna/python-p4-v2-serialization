@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 
 from models import db, Pet
 
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -18,6 +19,34 @@ db.init_app(app)
 @app.route('/')
 def index():
     body = {'message': 'Welcome to the pet directory!'}
+    return make_response(body, 200)
+
+@app.route('/pets/<int:id>')
+def pet_by_id(id):
+    pet = Pet.query.filter(Pet.id == id).first()
+    if pet:
+        # body = {
+        #     'id': pet.id,
+        #     'name': pet.name,
+        #     'species': pet.species
+        # }
+        body = pet.to_dict()
+        status = 200
+    else:
+        body = {'message': f'Pet {id} not found.'}
+        status = 404
+    response = make_response(body, status)
+    return response
+
+@app.route('/species/<string:species>')
+def pet_by_species(species):
+
+    pets = []
+
+    for pet in Pet.query.filter_by(species = species).all():
+        pets.append(pet.to_dict())
+    body = {'count': len(pets),
+            'pets': pets}
     return make_response(body, 200)
 
 
